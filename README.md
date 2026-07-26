@@ -1,11 +1,11 @@
 # Tzomo — Project Inception Package
 
 Everything decided before the first commit. Generated 2026-07-25 from the inception
-conversation; the SOW is the master document, at v0.7 with **zero open items**.
+conversation; the SOW is the master document, at v0.8 with **zero open items**.
 
 ## Contents
 
-- **SOW.md** — Statement of Work v0.7: vision, data model, full scope in/out, 13 frozen
+- **SOW.md** — Statement of Work v0.8: vision, data model, full scope in/out, 13 frozen
   architectural decisions, workload matrix, domain pressure-test + 25-performance-audit
   records, deliverable catalog, phasing with 90-day plan, engineering process, sustainability,
   risk register, closed open-item register, change log (v0.1→v0.7).
@@ -24,7 +24,7 @@ conversation; the SOW is the master document, at v0.7 with **zero open items**.
     runtimes, adoption playbooks, cautionary tales) audited against a ten-dimension rubric,
     with a cross-cutting synthesis.
   - `candidate-amendments.md` — 17 proposed SOW/ADR amendments harvested from the deep dive,
-    tiered by value, **awaiting owner ratification** (accepted items enter via SOW v0.8).
+    tiered by value, **ratified in full** (applied as SOW v0.8; ADR-0019..0022).
 - **registers/**
   - `assumptions.md` — landscape assumption register (§1B), re-verified annually (§14.14).
   - `risks.md` — risk register (§16).
