@@ -23,10 +23,10 @@ via change log + ADR.
 | **K — Sketched** | Scope described in prose; no ADR-level decision and no interface. | You know what it's for; key design calls remain open. |
 | **N — Named** | Appears in the catalog / scope list only. | A name and a one-line responsibility, nothing more. |
 
-**Honest headline (v0.9):** of ~35 systems, **1 is Specified** (GraphView/§4), ~15 are Decided,
-~12 Sketched, ~7 Named. The platform is *architecturally* dense (23 ADRs, zero open items) and
-*implementationally* thin — exactly right for a project at day-1 of Phase 0. The register's job
-is to convert that from an impression into a tracked frontier.
+**Honest headline (v0.9):** of ~35 systems, **2 are Specified** (GraphView/§4 → C1.0; on-disk
+format/§14.5 → X.2), ~15 Decided, ~11 Sketched, ~7 Named. The platform is *architecturally* dense
+(24 ADRs, zero open items) and *implementationally* thin — exactly right for a project at day-1 of
+Phase 0. The register's job is to convert that from an impression into a tracked frontier.
 
 ---
 
@@ -79,7 +79,7 @@ is to convert that from an impression into a tracked frontier.
 |---|--------|-------|-------|-----------|-----------|:------:|--------------|
 | C3.1 | **`algo` battery** | Traversals, centrality, components, shortest paths (delta-stepping), max-flow/min-cut, k-core, triangle/motif, matching, subgraph iso | 1 | C2.*, C1.0 | §5 L3 | **N** | Per-algorithm concept requirement (which lattice node — the register in design/04 §2 makes this mechanical); incremental variants; oracle per kernel |
 | C3.2 | **`community`** | Leiden, spectral, multilevel | 3 | C2.3, C3.1 | §5 L3 | **N** | Algorithm set; quality metric; determinism |
-| C3.3 | **Structure-class detector** | Detects sparse/dense, power-law, small-world/high-diameter, planar, DAG/tree, community, bounded-width; drives dispatch; diameter via double-BFS | 0–1 | C2.5 | §4; §7.12 | **K** | **Not in the §10 catalog** — real system, referenced but uncatalogued. Recommend adding it (see Gaps). Interface: what it measures, what dispatches on it, its tie to the planner |
+| C3.3 | **`detect`** (structure-class detector) | Detects sparse/dense, power-law, small-world/high-diameter, planar, DAG/tree, community, bounded-width; drives dispatch; diameter via double-BFS | 0–1 | C2.5 | §4; §7.12; **§10 (v0.9)** | **K** | Now catalogued as `detect` (G1 resolved v0.9). Interface still to specify: what it measures, what dispatches on it, its tie to the planner (X.1) |
 
 ---
 
@@ -123,7 +123,7 @@ is to convert that from an impression into a tracked frontier.
 | # | System | Resp. | Phase | Defined by | Status | Gap to close |
 |---|--------|-------|-------|-----------|:------:|--------------|
 | X.1 | **Planner + wisdom** | Measures representation/ordering/kernel/block choices; persisted wisdom cache; the plan-space is the concept lattice (design/04 §8) | 3 (auto) / 0 (iface) | **ADR-0020**; §8 | **D** | The planner interface + plan-space definition — a named candidate deepening; the wisdom cache format + invalidation |
-| X.2 | **On-disk format** | mmap-native format: magic/version, 2MB-aligned sections, read-N−1 window, schema-evolution rules, checksums, endianness; as permanent as the ABI | 0 | §14.5; ADR-0008 (chunks) | **K** | **The actual spec skeleton** — a named candidate deepening; load-bearing for C1.2/L0.10/C6.4; permanence makes this high-leverage |
+| X.2 | **On-disk format** | mmap-native format: container of immutable 2MB-aligned `.tzc` chunks + atomically-swapped manifest; frozen `ContiguousGraphView` form only; read-N−1; Arrow-IPC properties | 0 | **ADR-0024; design/14**; §14.5; ADR-0008 | **S** | ✅ Specified (spec skeleton). Follow-ups: higher-order (`chunk_type` 1/2) section catalogs; the `dict.tzd` and provenance-sidecar sub-specs |
 | X.3 | **Error taxonomy** | One error model across C++/C ABI/Python; actionable messages | 1 | §14.11 | **K** | The enum; the "what was wrong + what would be valid" convention; the capability-unmet statuses (design/04 §5) |
 | X.4 | **Determinism infrastructure** | Bit-exact + fast modes, per-kernel selected; cross-arch reduction policy | 0 | Principle 8; §14.6 | **K** | The mode-selection API; the reproducible-reduction primitives; how the planner interacts with fixed-vs-planned execution |
 | X.5 | **Benchmark harness** (`bench`) | GAP/LDBC at 10³/10⁶/10⁹ + construction; regression CI; bytes-per-edge & %-STREAM; small-graph & write-amp rows; published losses | 0 | §14.1 | **D** | The harness architecture; the metric-reporting schema; the reproduction-script generator |
@@ -133,11 +133,9 @@ is to convert that from an impression into a tracked frontier.
 
 ## Gaps and recommendations
 
-**G1 — Catalog gap: the structure-class detector (C3.3) is not in §10.** It is described in §4 and
-§7.12 and is depended on by dispatch and the planner, but it is not a listed deliverable. It is
-*existing in-scope work made illegible by omission*, not new scope. **Recommendation: add it to
-the §10 catalog** (as `detect`, or folded explicitly into `algo`) via a v0.9+ change-log note.
-Awaiting ratification — this is a definitional cleanup, not a scope change.
+**G1 — RESOLVED (v0.9).** The structure-class detector was uncatalogued; ratified and added to the
+§10 catalog as **`detect`** (Compute group), described as existing in-scope work made legible, not
+new scope. Its *interface* remains to be specified (status K) — a later deepening.
 
 **G2 — Standalone-module contract (CA-8) is asserted but unspecified.** `blas`, `algo`, `part`,
 `sketch` must each embed without the platform, enforced by a CI link-test. No system defines what
@@ -158,12 +156,13 @@ retrofitting bit-exactness is far harder than designing for it.
 Ordered by *leverage × Phase-0 proximity* — deepen what everything else sits on, earliest-phase
 first. Each entry is a `docs/design/NN-*.md` note + change-log + ADR where a real decision falls out.
 
-1. **X.2 On-disk format skeleton** — permanent artifact, load-bearing for C1.2/L0.10/C6.4, Phase 0.
-   The `freeze()`/`ContiguousGraphView` boundary from design/04 is exactly where it meets the type
-   system. *Highest leverage after GraphView.*
-2. **C1.2 Chunked base + delta** — the second-most load-bearing representation; ADR-0008 is decided
-   but the manifest schema, compaction-strategy interface, and ≤2-run guarantee are unspecified.
-   Pairs naturally with X.2.
+1. ~~**X.2 On-disk format skeleton**~~ — ✅ **done (v0.9, ADR-0024, design/14).** Container of
+   immutable 2MB-aligned chunk files + manifest; realizes the `freeze()`/`ContiguousGraphView`
+   boundary on disk.
+2. **C1.2 Chunked base + delta** — *now the top open item.* The second-most load-bearing
+   representation; ADR-0008 is decided but the manifest schema, compaction-strategy interface, and
+   ≤2-run guarantee are unspecified. Pairs naturally with the just-landed X.2 (they share the
+   manifest).
 3. **L0.2 Scheduler interface** — ADR-0021 says a caller scheduler is "honored everywhere," but the
    handle it's honored *through* is undefined. Every parallel kernel needs it; Phase 0.
 4. **X.1 Planner interface + plan-space** — now that the lattice defines the plan-space (design/04

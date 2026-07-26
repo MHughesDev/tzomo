@@ -11,9 +11,9 @@ conversation; the SOW is the master document, at v0.9 with **zero open items**. 
   records, deliverable catalog, phasing with 90-day plan, engineering process, sustainability,
   risk register, closed open-item register, change log (v0.1→v0.9).
 - **PRINCIPLES.md** — the eleven principles + two tiebreakers (extracted; commit as-is).
-- **decisions/** — 23 ADRs (MADR format), the §7 frozen decisions plus license, name,
-  build system, partitioner, query-language, and GraphView-surface rulings. Drop into the repo
-  unchanged (SOW §14.9 discipline: co-located with code, one decision per record).
+- **decisions/** — 24 ADRs (MADR format), the §7 frozen decisions plus license, name,
+  build system, partitioner, query-language, GraphView-surface, and on-disk-format rulings. Drop
+  into the repo unchanged (SOW §14.9 discipline: co-located with code, one decision per record).
 - **design/** — section-deepening notes (v0.9+): implementable-specificity expansions of SOW
   sections, each proposing a delta ratified via change log + ADR.
   - `00-system-register.md` — the completeness map: every system (module catalog + cross-cutting)
@@ -22,6 +22,9 @@ conversation; the SOW is the master document, at v0.9 with **zero open items**. 
   - `04-graphview-and-incidence-tiers.md` — the §4 data-model surface: GraphView as a C++23
     concept lattice (ADR-0023), the runs-not-span base contract, the compile-time incidence
     firewall, acceptance criteria, and edge-case register.
+  - `14-on-disk-format.md` — the §14.5 mmap-native format spec skeleton (ADR-0024): container of
+    immutable 2MB-aligned chunk files + manifest, exact byte layouts, versioning/endianness/
+    integrity rules, reader algorithm, and acceptance criteria.
 - **research/**
   - `external-systems-log.md` — every incumbent, competitor, and ecosystem fact researched,
     status-flagged (VERIFIED / HIGH CONFIDENCE / CHECK), incl. the contested-Kuzu-vacuum

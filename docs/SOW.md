@@ -602,7 +602,10 @@ initial partitioning via `laplace`, streaming/incremental repartitioning, and na
 with layout and the distributed substrate. The partitioner remains the determinant of
 distributed viability (audit 23: partition quality moves communication volume 5–20×; quality
 target — comm volume vs. random baseline), but Phase 2 no longer carries an unplanned
-from-scratch build), `community`, `stream`, `sketch`.
+from-scratch build), `community`, `stream`, `sketch`, `detect` (structure-class detector —
+sparse/dense, power-law, small-world/high-diameter, planar, DAG/tree, community, bounded-width;
+diameter via double-BFS sweep; drives specialized dispatch and feeds the planner, §7.12/§8;
+catalogued explicitly in v0.9 — previously described in §4/§7.12 but omitted from this list).
 
 **Applied:** `layout`, `viz`, `match`, `ml`, `db`.
 
@@ -774,6 +777,18 @@ deprecate-don't-delete, alignment invariants; FlatBuffers/Cap'n Proto discipline
 written **spec-first as if others will implement it** (Arrow discipline), documented
 endianness policy, checksums, a stated forward/backward compatibility promise, and a migration
 path for breaking changes.
+*Specified to skeleton depth (v0.9, ADR-0024):* a graph is a **container of immutable,
+self-describing, 2MB-aligned `.tzc` chunk files plus a small `MANIFEST` superblock** pointing at
+an append-only manifest generation; the manifest **is** the epoch/snapshot (ADR-0007) and is
+installed by a single atomic rename (crash-safe, lock-free). The format encodes **only the frozen
+`ContiguousGraphView` form** (sorted, tombstone-free neighbor runs), so mapping a chunk is the
+inverse of `freeze()` (ADR-0023); the mutable delta overlay and WAL are the `stream`/`db` layers'
+concern (ADR-0009), referenced but not defined by this format. Canonical **little-endian only** in
+v1 (big-endian rejected, not swapped, to preserve mmap zero-copy); xxHash3 integrity verified at
+the API boundary with authenticity **detached** (SLSA/sigstore sidecar); property columns stored as
+**Arrow IPC** (ADR-0005); v1 fully specifies the pairwise tier and reserves `chunk_type` tags for
+the higher-order tiers. Full byte layouts, reader algorithm, and acceptance criteria:
+`docs/design/14-on-disk-format.md`.
 
 **14.6 Numerical policy.** Precision strategy (fp32/fp64/mixed) declared per kernel; overflow
 and saturation behavior specified; NaN/infinity handling documented; cross-architecture
@@ -1006,6 +1021,15 @@ annual radar (§14.14), not by accretion.
   `docs/design/04-graphview-and-incidence-tiers.md`. No frozen decision moved; no §6 exclusion
   touched — additive to §4/§7.4/§7.13. Header/status corrected to reflect current version (the
   title had lagged at v0.1 while the change log advanced).
+  Also in v0.9: a **system definition register** (`docs/design/00-system-register.md`) mapping all
+  ~35 systems to a definition-status verdict (Specified/Decided/Sketched/Named) with a recommended
+  deepening order. **§10 catalog gain:** the structure-class detector catalogued explicitly as
+  `detect` (previously described in §4/§7.12 but omitted from the deliverable list — a legibility
+  fix, not new scope). **§14.5 on-disk format** deepened to a spec skeleton (ADR-0024): a container
+  of immutable 2MB-aligned `.tzc` chunk files + an atomically-swapped manifest; the frozen
+  `ContiguousGraphView` form only; canonical little-endian; read-N−1 with migrate-on-compaction;
+  Arrow-IPC property columns; v1 pairwise-complete with higher-order chunk types reserved. Full
+  byte layouts and acceptance criteria in `docs/design/14-on-disk-format.md`.
 - **v0.8 (2026-07-25)** — Deep-dive round 2 (24 external systems) ratified in full: all 17
   candidate amendments applied. Amalgamated build target (CA-1, ADR-0019); planner/wisdom
   component named (CA-2, ADR-0020); composability contract (CA-3, ADR-0021); compaction
