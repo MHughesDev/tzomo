@@ -3,7 +3,7 @@
 Everything is decided; this is execution only.
 
 **Day 1–2 — claims and shell**
-- [ ] Reserve GitHub org (fallback handles: tzomo-graph, tzomolib if bare taken) and create `tzomo` repo (private)
+- [1] Reserve GitHub org (fallback handles: tzomo-graph, tzomolib if bare taken) and create `tzomo` repo (private)
 - [ ] Publish minimal `tzomo` 0.0.1a0 to PyPI (name reservation via release — README + link only)
 - [ ] Check crates.io / npm / conda-forge handles; register a domain (tzomo.dev or tzomo.org)
 - [ ] Run USPTO/EUIPO word-mark search (posture: unregistered mark, ADR-0017/§15.6 — search is due diligence only)
