@@ -16,6 +16,9 @@ conversation; the SOW is the master document, at v0.9 with **zero open items**. 
   unchanged (SOW §14.9 discipline: co-located with code, one decision per record).
 - **design/** — section-deepening notes (v0.9+): implementable-specificity expansions of SOW
   sections, each proposing a delta ratified via change log + ADR.
+  - `00-system-register.md` — the completeness map: every system (module catalog + cross-cutting)
+    with a definition-status verdict (Specified / Decided / Sketched / Named), dependencies, and a
+    recommended deepening order. Start here to see the definition frontier.
   - `04-graphview-and-incidence-tiers.md` — the §4 data-model surface: GraphView as a C++23
     concept lattice (ADR-0023), the runs-not-span base contract, the compile-time incidence
     firewall, acceptance criteria, and edge-case register.
