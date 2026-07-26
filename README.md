@@ -8,9 +8,9 @@ conversation; the SOW is the master document, at v0.8 with **zero open items**.
 - **SOW.md** — Statement of Work v0.8: vision, data model, full scope in/out, 13 frozen
   architectural decisions, workload matrix, domain pressure-test + 25-performance-audit
   records, deliverable catalog, phasing with 90-day plan, engineering process, sustainability,
-  risk register, closed open-item register, change log (v0.1→v0.7).
+  risk register, closed open-item register, change log (v0.1→v0.8).
 - **PRINCIPLES.md** — the eleven principles + two tiebreakers (extracted; commit as-is).
-- **decisions/** — 18 seed ADRs (MADR format), the §7 frozen decisions plus license, name,
+- **decisions/** — 22 ADRs (MADR format), the §7 frozen decisions plus license, name,
   build system, partitioner, and query-language rulings. Drop into the repo unchanged
   (SOW §14.9 discipline: co-located with code, one decision per record).
 - **research/**
