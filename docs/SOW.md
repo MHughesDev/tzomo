@@ -1,9 +1,10 @@
-# Statement of Work — v0.1 (FROZEN DRAFT)
+# Statement of Work — v0.9
 ## Project name: **Tzomo**
 
-**Date:** 2026-07-25
+**Date:** 2026-07-26 (initial freeze 2026-07-25)
 **Owner:** Solo developer
-**Status:** v0.1 frozen. Amendments require a change-log entry (§18).
+**Status:** Frozen; current version v0.9 (§18). Amendments require a change-log entry (§18);
+significant decisions require an ADR (§14.9).
 
 ---
 
@@ -156,6 +157,26 @@ bounded memory).
 
 **Structure classes detected and dispatched on:** sparse/dense, power-law, small-world vs.
 high-diameter, planar/near-planar, DAG/tree, community structure, bounded-width.
+
+**GraphView surface (v0.9, ADR-0023).** The data model is programmed against through a **C++23
+concept, not a base class** — kernels are `template<GraphView G>`, monomorphized per
+representation × ID-width, so neighbor access is a direct load with no per-access dispatch (the
+only structure that holds the pairwise-zero-cost requirement above under the bandwidth budget).
+Capabilities that differ across representations (CSC dual, weights, single-sorted-run contiguity,
+adjacency probe, dedup, stable edge IDs, time) are a **lattice of concept refinements**; each
+kernel constrains on the weakest node it needs. The **base neighbor contract is a range of ≤2
+sorted runs, not a single span** — single contiguity is the `ContiguousGraphView` refinement,
+reached from a live base+delta graph (§7.8) only via an explicit `freeze()`, so that
+representation's cost is paid at a named call by the intersection/probe/SIMD kernels that require
+it and never by BFS/PageRank. Runtime representation choice is one type-erased dispatch at the
+call boundary (`AnyGraph`), monomorphic within — consistent with the planner (§8, ADR-0020) and
+the instantiation budget (§7.13). Pairwise (`GraphView`) and incidence
+(`IncidenceView`/`SimplicialView`) are **disjoint concepts** joined only by an explicit O(m)
+`project_to_pairwise` conversion, which is how "pairwise kernels never touch incidence structures"
+(§7.4) is enforced as a compile error. The simplicial tier exposes the boundary operator ∂_k as a
+sparse matrix the `blas`/`laplace` modules consume directly; the Hodge Laplacian is derived, not
+stored. Full specification, acceptance criteria, and edge-case register:
+`docs/design/04-graphview-and-incidence-tiers.md`.
 
 ---
 
@@ -581,7 +602,10 @@ initial partitioning via `laplace`, streaming/incremental repartitioning, and na
 with layout and the distributed substrate. The partitioner remains the determinant of
 distributed viability (audit 23: partition quality moves communication volume 5–20×; quality
 target — comm volume vs. random baseline), but Phase 2 no longer carries an unplanned
-from-scratch build), `community`, `stream`, `sketch`.
+from-scratch build), `community`, `stream`, `sketch`, `detect` (structure-class detector —
+sparse/dense, power-law, small-world/high-diameter, planar, DAG/tree, community, bounded-width;
+diameter via double-BFS sweep; drives specialized dispatch and feeds the planner, §7.12/§8;
+catalogued explicitly in v0.9 — previously described in §4/§7.12 but omitted from this list).
 
 **Applied:** `layout`, `viz`, `match`, `ml`, `db`.
 
@@ -753,6 +777,18 @@ deprecate-don't-delete, alignment invariants; FlatBuffers/Cap'n Proto discipline
 written **spec-first as if others will implement it** (Arrow discipline), documented
 endianness policy, checksums, a stated forward/backward compatibility promise, and a migration
 path for breaking changes.
+*Specified to skeleton depth (v0.9, ADR-0024):* a graph is a **container of immutable,
+self-describing, 2MB-aligned `.tzc` chunk files plus a small `MANIFEST` superblock** pointing at
+an append-only manifest generation; the manifest **is** the epoch/snapshot (ADR-0007) and is
+installed by a single atomic rename (crash-safe, lock-free). The format encodes **only the frozen
+`ContiguousGraphView` form** (sorted, tombstone-free neighbor runs), so mapping a chunk is the
+inverse of `freeze()` (ADR-0023); the mutable delta overlay and WAL are the `stream`/`db` layers'
+concern (ADR-0009), referenced but not defined by this format. Canonical **little-endian only** in
+v1 (big-endian rejected, not swapped, to preserve mmap zero-copy); xxHash3 integrity verified at
+the API boundary with authenticity **detached** (SLSA/sigstore sidecar); property columns stored as
+**Arrow IPC** (ADR-0005); v1 fully specifies the pairwise tier and reserves `chunk_type` tags for
+the higher-order tiers. Full byte layouts, reader algorithm, and acceptance criteria:
+`docs/design/14-on-disk-format.md`.
 
 **14.6 Numerical policy.** Precision strategy (fp32/fp64/mixed) declared per kernel; overflow
 and saturation behavior specified; NaN/infinity handling documented; cross-architecture
@@ -970,6 +1006,30 @@ annual radar (§14.14), not by accretion.
 
 ## 18. Change Log
 
+- **v0.9 (2026-07-26)** — Section-deepening begins. §4 data model deepened toward implementable
+  specificity: the **GraphView surface** specified as a C++23 concept lattice (ADR-0023), not a
+  base class — monomorphized kernels with no per-access dispatch; capability differences as a
+  refinement lattice; a **range-of-≤2-runs base neighbor contract** (single-span contiguity is a
+  refinement reached via explicit `freeze()`, routing the base+delta cost to only the kernels that
+  require it); one type-erased `AnyGraph` dispatch at the call boundary (consistent with §7.13 and
+  ADR-0020); pairwise and incidence as **disjoint concepts** joined only by explicit
+  `project_to_pairwise`, making §7.4's "pairwise never touches incidence" a compile error; the
+  simplicial tier exposing ∂_k as a sparse matrix (Hodge Laplacian derived, not stored). Adds
+  acceptance criteria (zero-cost pairwise gate, no-per-access-dispatch perf-counter check,
+  compile-time incidence firewall), an edge-case register, the C-ABI capability-bitmask mapping,
+  and the observation that the lattice is the planner's plan-space generator. Full design:
+  `docs/design/04-graphview-and-incidence-tiers.md`. No frozen decision moved; no §6 exclusion
+  touched — additive to §4/§7.4/§7.13. Header/status corrected to reflect current version (the
+  title had lagged at v0.1 while the change log advanced).
+  Also in v0.9: a **system definition register** (`docs/design/00-system-register.md`) mapping all
+  ~35 systems to a definition-status verdict (Specified/Decided/Sketched/Named) with a recommended
+  deepening order. **§10 catalog gain:** the structure-class detector catalogued explicitly as
+  `detect` (previously described in §4/§7.12 but omitted from the deliverable list — a legibility
+  fix, not new scope). **§14.5 on-disk format** deepened to a spec skeleton (ADR-0024): a container
+  of immutable 2MB-aligned `.tzc` chunk files + an atomically-swapped manifest; the frozen
+  `ContiguousGraphView` form only; canonical little-endian; read-N−1 with migrate-on-compaction;
+  Arrow-IPC property columns; v1 pairwise-complete with higher-order chunk types reserved. Full
+  byte layouts and acceptance criteria in `docs/design/14-on-disk-format.md`.
 - **v0.8 (2026-07-25)** — Deep-dive round 2 (24 external systems) ratified in full: all 17
   candidate amendments applied. Amalgamated build target (CA-1, ADR-0019); planner/wisdom
   component named (CA-2, ADR-0020); composability contract (CA-3, ADR-0021); compaction
