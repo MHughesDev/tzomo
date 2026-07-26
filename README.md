@@ -1,18 +1,24 @@
 # Tzomo — Project Inception Package
 
 Everything decided before the first commit. Generated 2026-07-25 from the inception
-conversation; the SOW is the master document, at v0.8 with **zero open items**.
+conversation; the SOW is the master document, at v0.9 with **zero open items**. Section-deepening
+(v0.9+) expands individual sections toward implementable specificity — see `design/`.
 
 ## Contents
 
-- **SOW.md** — Statement of Work v0.8: vision, data model, full scope in/out, 13 frozen
+- **SOW.md** — Statement of Work v0.9: vision, data model, full scope in/out, 13 frozen
   architectural decisions, workload matrix, domain pressure-test + 25-performance-audit
   records, deliverable catalog, phasing with 90-day plan, engineering process, sustainability,
-  risk register, closed open-item register, change log (v0.1→v0.8).
+  risk register, closed open-item register, change log (v0.1→v0.9).
 - **PRINCIPLES.md** — the eleven principles + two tiebreakers (extracted; commit as-is).
-- **decisions/** — 22 ADRs (MADR format), the §7 frozen decisions plus license, name,
-  build system, partitioner, and query-language rulings. Drop into the repo unchanged
-  (SOW §14.9 discipline: co-located with code, one decision per record).
+- **decisions/** — 23 ADRs (MADR format), the §7 frozen decisions plus license, name,
+  build system, partitioner, query-language, and GraphView-surface rulings. Drop into the repo
+  unchanged (SOW §14.9 discipline: co-located with code, one decision per record).
+- **design/** — section-deepening notes (v0.9+): implementable-specificity expansions of SOW
+  sections, each proposing a delta ratified via change log + ADR.
+  - `04-graphview-and-incidence-tiers.md` — the §4 data-model surface: GraphView as a C++23
+    concept lattice (ADR-0023), the runs-not-span base contract, the compile-time incidence
+    firewall, acceptance criteria, and edge-case register.
 - **research/**
   - `external-systems-log.md` — every incumbent, competitor, and ecosystem fact researched,
     status-flagged (VERIFIED / HIGH CONFIDENCE / CHECK), incl. the contested-Kuzu-vacuum
